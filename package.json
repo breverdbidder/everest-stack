@@ -1,0 +1,49 @@
+{
+  "name": "everest-stack",
+  "version": "1.0.0",
+  "description": "Claude Code plugin for foreclosure deal intelligence — powered by GStack architecture",
+  "author": "Ariel Shapira <ariel@everestcapitalusa.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/breverdbidder/everest-stack.git"
+  },
+  "keywords": [
+    "claude-code-plugin",
+    "foreclosure",
+    "real-estate",
+    "deal-intelligence",
+    "lien-audit",
+    "brevard-county"
+  ],
+  "claude-plugin": {
+    "name": "everest-stack",
+    "version": "1.0.0",
+    "description": "Foreclosure deal intelligence — 10 specialist skills for auction analysis, lien verification, property QA, and market intel.",
+    "skills": [
+      "deal-office-hours",
+      "deal-ceo-review",
+      "deal-eng-review",
+      "lien-audit",
+      "qa-property",
+      "eval-judge",
+      "deal-review",
+      "deal-ship",
+      "market-intel",
+      "nexus-retro"
+    ]
+  },
+  "scripts": {
+    "test": "node --test test/skill-validation.test.js",
+    "test:evals": "node --test test/skill-e2e-office-hours.test.js test/skill-e2e-lien-audit.test.js",
+    "test:evals:all": "EVALS_ALL=1 node --test test/skill-e2e-*.test.js",
+    "eval:select": "node test/helpers/eval-select.js",
+    "eval:compare": "node test/helpers/eval-compare.js",
+    "eval:summary": "node test/helpers/eval-summary.js",
+    "skill:check": "node scripts/skill-check.js",
+    "postinstall": "echo 'everest-stack installed. Run /deal-office-hours to start.'"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

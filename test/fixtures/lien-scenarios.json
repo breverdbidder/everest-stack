@@ -1,0 +1,176 @@
+{
+  "scenarios": [
+    {
+      "id": "LA-001",
+      "name": "Clean mortgage - no junior liens",
+      "foreclosure_type": "mortgage",
+      "plaintiff": "Wells Fargo Bank NA",
+      "instruments": [
+        {"type": "Mortgage", "recording_date": "2019-03-15", "amount": 225000, "status": "active", "holder": "Wells Fargo Bank NA", "priority": "foreclosing"}
+      ],
+      "tax_certs": [],
+      "delinquent_taxes": 0,
+      "expected_surviving": [],
+      "expected_extinguished": [],
+      "expected_clearance": "CLEARED",
+      "total_additional_cost": 0
+    },
+    {
+      "id": "LA-002",
+      "name": "Mortgage with junior HOA lien - wipes clean",
+      "foreclosure_type": "mortgage",
+      "plaintiff": "Bank of America NA",
+      "instruments": [
+        {"type": "Mortgage", "recording_date": "2018-06-01", "amount": 280000, "status": "active", "holder": "Bank of America NA", "priority": "foreclosing"},
+        {"type": "HOA Lien", "recording_date": "2023-09-15", "amount": 8500, "status": "active", "holder": "Sunset HOA", "priority": "junior"}
+      ],
+      "tax_certs": [],
+      "delinquent_taxes": 1200,
+      "expected_surviving": [],
+      "expected_extinguished": ["HOA Lien"],
+      "expected_clearance": "CLEARED",
+      "total_additional_cost": 1200
+    },
+    {
+      "id": "LA-003",
+      "name": "HOA foreclosure - senior mortgage SURVIVES",
+      "foreclosure_type": "hoa",
+      "plaintiff": "Oceanview COA Inc",
+      "instruments": [
+        {"type": "Mortgage", "recording_date": "2017-04-20", "amount": 195000, "status": "active", "holder": "Chase Home Finance", "priority": "senior"},
+        {"type": "HOA Lien", "recording_date": "2023-01-10", "amount": 15000, "status": "active", "holder": "Oceanview COA Inc", "priority": "foreclosing"}
+      ],
+      "tax_certs": [],
+      "delinquent_taxes": 0,
+      "expected_surviving": ["Mortgage"],
+      "expected_extinguished": [],
+      "expected_clearance": "NEEDS_VERIFICATION",
+      "total_additional_cost": 195000,
+      "critical_flag": "senior_mortgage_survives"
+    },
+    {
+      "id": "LA-004",
+      "name": "IRS federal tax lien present",
+      "foreclosure_type": "mortgage",
+      "plaintiff": "Nationstar Mortgage LLC",
+      "instruments": [
+        {"type": "Mortgage", "recording_date": "2016-11-05", "amount": 165000, "status": "active", "holder": "Nationstar Mortgage LLC", "priority": "foreclosing"},
+        {"type": "Federal Tax Lien", "recording_date": "2022-08-20", "amount": 42000, "status": "active", "holder": "IRS", "priority": "junior"}
+      ],
+      "tax_certs": [],
+      "delinquent_taxes": 0,
+      "expected_surviving": [],
+      "expected_extinguished": ["Federal Tax Lien"],
+      "expected_clearance": "CLEARED",
+      "total_additional_cost": 0,
+      "warning": "120_day_federal_redemption"
+    },
+    {
+      "id": "LA-005",
+      "name": "Outstanding tax certificates",
+      "foreclosure_type": "mortgage",
+      "plaintiff": "US Bank NA",
+      "instruments": [
+        {"type": "Mortgage", "recording_date": "2015-07-10", "amount": 210000, "status": "active", "holder": "US Bank NA", "priority": "foreclosing"}
+      ],
+      "tax_certs": [
+        {"year": 2022, "face_value": 3800, "interest_accrued": 950, "holder": "FIG Capital Investments"},
+        {"year": 2023, "face_value": 4100, "interest_accrued": 410, "holder": "FIG Capital Investments"}
+      ],
+      "delinquent_taxes": 4200,
+      "expected_surviving": ["Tax Certificate 2022", "Tax Certificate 2023"],
+      "expected_extinguished": [],
+      "expected_clearance": "CLEARED",
+      "total_additional_cost": 13460
+    },
+    {
+      "id": "LA-006",
+      "name": "HOA foreclosure with satisfied mortgage",
+      "foreclosure_type": "hoa",
+      "plaintiff": "Palm Gardens HOA",
+      "instruments": [
+        {"type": "Mortgage", "recording_date": "2010-03-01", "amount": 175000, "status": "satisfied", "satisfaction_date": "2020-06-15", "holder": "Quicken Loans", "priority": "n/a"},
+        {"type": "HOA Lien", "recording_date": "2024-02-01", "amount": 9200, "status": "active", "holder": "Palm Gardens HOA", "priority": "foreclosing"}
+      ],
+      "tax_certs": [],
+      "delinquent_taxes": 0,
+      "expected_surviving": [],
+      "expected_extinguished": [],
+      "expected_clearance": "CLEARED",
+      "total_additional_cost": 0
+    },
+    {
+      "id": "LA-007",
+      "name": "Multiple mortgages - second survives HOA",
+      "foreclosure_type": "hoa",
+      "plaintiff": "River Bend COA",
+      "instruments": [
+        {"type": "Mortgage", "recording_date": "2016-01-15", "amount": 220000, "status": "active", "holder": "PNC Bank NA", "priority": "senior"},
+        {"type": "Second Mortgage", "recording_date": "2018-05-20", "amount": 45000, "status": "active", "holder": "SunTrust Bank", "priority": "senior"},
+        {"type": "HOA Lien", "recording_date": "2023-11-01", "amount": 11000, "status": "active", "holder": "River Bend COA", "priority": "foreclosing"}
+      ],
+      "tax_certs": [],
+      "delinquent_taxes": 2100,
+      "expected_surviving": ["Mortgage", "Second Mortgage"],
+      "expected_extinguished": [],
+      "expected_clearance": "DO_NOT_BID",
+      "total_additional_cost": 267100,
+      "critical_flag": "multiple_senior_mortgages"
+    },
+    {
+      "id": "LA-008",
+      "name": "Code enforcement lien - complex priority",
+      "foreclosure_type": "mortgage",
+      "plaintiff": "Freedom Mortgage Corp",
+      "instruments": [
+        {"type": "Mortgage", "recording_date": "2019-09-01", "amount": 190000, "status": "active", "holder": "Freedom Mortgage Corp", "priority": "foreclosing"},
+        {"type": "Code Enforcement Lien", "recording_date": "2021-04-15", "amount": 18500, "status": "active", "holder": "City of Melbourne", "priority": "may_survive"}
+      ],
+      "tax_certs": [],
+      "delinquent_taxes": 0,
+      "expected_surviving": [],
+      "expected_extinguished": ["Code Enforcement Lien"],
+      "expected_clearance": "NEEDS_VERIFICATION",
+      "total_additional_cost": 0,
+      "warning": "code_enforcement_priority_unclear"
+    },
+    {
+      "id": "LA-009",
+      "name": "Construction lien junior to mortgage",
+      "foreclosure_type": "mortgage",
+      "plaintiff": "Rocket Mortgage LLC",
+      "instruments": [
+        {"type": "Mortgage", "recording_date": "2020-02-10", "amount": 245000, "status": "active", "holder": "Rocket Mortgage LLC", "priority": "foreclosing"},
+        {"type": "Construction Lien", "recording_date": "2023-07-01", "amount": 32000, "status": "active", "holder": "ABC Roofing Inc", "priority": "junior"}
+      ],
+      "tax_certs": [],
+      "delinquent_taxes": 0,
+      "expected_surviving": [],
+      "expected_extinguished": ["Construction Lien"],
+      "expected_clearance": "CLEARED",
+      "total_additional_cost": 0
+    },
+    {
+      "id": "LA-010",
+      "name": "Maximum complexity - all lien types present",
+      "foreclosure_type": "mortgage",
+      "plaintiff": "JPMorgan Chase Bank NA",
+      "instruments": [
+        {"type": "Mortgage", "recording_date": "2017-01-20", "amount": 310000, "status": "active", "holder": "JPMorgan Chase Bank NA", "priority": "foreclosing"},
+        {"type": "Second Mortgage", "recording_date": "2019-06-01", "amount": 55000, "status": "active", "holder": "Citizens Bank", "priority": "junior"},
+        {"type": "HOA Lien", "recording_date": "2023-03-15", "amount": 7200, "status": "active", "holder": "Viera East HOA", "priority": "junior"},
+        {"type": "Judgment Lien", "recording_date": "2022-11-01", "amount": 15000, "status": "active", "holder": "Credit Corp Solutions", "priority": "junior"},
+        {"type": "Federal Tax Lien", "recording_date": "2023-09-20", "amount": 28000, "status": "active", "holder": "IRS", "priority": "junior"}
+      ],
+      "tax_certs": [
+        {"year": 2023, "face_value": 5200, "interest_accrued": 520, "holder": "Brevard County"}
+      ],
+      "delinquent_taxes": 5400,
+      "expected_surviving": ["Tax Certificate 2023"],
+      "expected_extinguished": ["Second Mortgage", "HOA Lien", "Judgment Lien", "Federal Tax Lien"],
+      "expected_clearance": "CLEARED",
+      "total_additional_cost": 11120,
+      "warning": "120_day_federal_redemption"
+    }
+  ]
+}
