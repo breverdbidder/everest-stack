@@ -69,23 +69,25 @@ def search_bcpao_gis(owner_name: str) -> list:
 
     # Build multiple WHERE clauses to catch trusts/LLCs
     queries = [
-        f"UPPER(OWNER1) LIKE '%{clean}%'",
-        f"UPPER(OWNER2) LIKE '%{clean}%'",
+        f"UPPER(OWNER_NAME1) LIKE '%{clean}%'",
+        f"UPPER(OWNER_NAME2) LIKE '%{clean}%'",
     ]
 
     # If name has space, also try last name only
     parts = clean.split()
     if len(parts) > 1:
         last_name = parts[-1] if len(parts[-1]) > 2 else parts[0]
-        queries.append(f"UPPER(OWNER1) LIKE '%{last_name}%'")
+        queries.append(f"UPPER(OWNER_NAME1) LIKE '%{last_name}%'")
 
     out_fields = (
-        "ACCOUNT,OWNER1,OWNER2,SITEADDR,LEGAL1,LEGAL2,"
-        "JUSTVAL,BLDGVAL,LANDVAL,SQFT,YRBLT,BEDS,BATHS,USECODE,"
-        "CENSUS,NBHD"
+        "PARCEL_ID,OWNER_NAME1,OWNER_NAME2,STREET_NUMBER,STREET_NAME,"
+        "CITY,ZIP_CODE,BLDG_VALUE,LAND_VALUE,LIV_AREA,LEGAL_DESC,"
+        "USE_CODE_DESCRIPTION,SUBDIVISION_NAME,EXEMPTION_CODE"
     )
 
     seen_accounts = set()
+
+    for where in queries:
 
     for where in queries:
         try:
@@ -99,7 +101,7 @@ def search_bcpao_gis(owner_name: str) -> list:
             if r.status_code == 200:
                 data = r.json()
                 for feat in data.get("features", []):
-                    acct = feat["attributes"].get("ACCOUNT", "")
+                    acct = feat["attributes"].get("PARCEL_ID", "")
                     if acct and acct not in seen_accounts:
                         seen_accounts.add(acct)
                         results.append(feat["attributes"])
@@ -111,23 +113,22 @@ def search_bcpao_gis(owner_name: str) -> list:
 
 def format_bcpao_result(attrs: dict) -> dict:
     """Format BCPAO GIS attributes into structured output."""
+    addr = f"{attrs.get('STREET_NUMBER', '')} {attrs.get('STREET_NAME', '')}".strip()
     return {
-        "account": attrs.get("ACCOUNT", ""),
-        "owner1": attrs.get("OWNER1", ""),
-        "owner2": attrs.get("OWNER2", ""),
-        "address": attrs.get("SITEADDR", ""),
-        "legal1": attrs.get("LEGAL1", ""),
-        "legal2": attrs.get("LEGAL2", ""),
-        "just_value": attrs.get("JUSTVAL", 0),
-        "building_value": attrs.get("BLDGVAL", 0),
-        "land_value": attrs.get("LANDVAL", 0),
-        "sqft": attrs.get("SQFT", 0),
-        "year_built": attrs.get("YRBLT", 0),
-        "beds": attrs.get("BEDS", 0),
-        "baths": attrs.get("BATHS", 0),
-        "use_code": attrs.get("USECODE", ""),
-        "census_tract": attrs.get("CENSUS", ""),
-        "neighborhood": attrs.get("NBHD", ""),
+        "parcel_id": attrs.get("PARCEL_ID", ""),
+        "owner1": attrs.get("OWNER_NAME1", ""),
+        "owner2": attrs.get("OWNER_NAME2", ""),
+        "address": addr,
+        "city": attrs.get("CITY", "").strip(),
+        "zip": attrs.get("ZIP_CODE", ""),
+        "legal_desc": attrs.get("LEGAL_DESC", ""),
+        "building_value": attrs.get("BLDG_VALUE", 0),
+        "land_value": attrs.get("LAND_VALUE", 0),
+        "just_value": (attrs.get("BLDG_VALUE", 0) or 0) + (attrs.get("LAND_VALUE", 0) or 0),
+        "living_area": attrs.get("LIV_AREA", 0),
+        "use_code": attrs.get("USE_CODE_DESCRIPTION", "").strip(),
+        "subdivision": attrs.get("SUBDIVISION_NAME", "").strip(),
+        "exemption": attrs.get("EXEMPTION_CODE", "").strip(),
     }
 
 
@@ -350,13 +351,19 @@ def run_full_audit(owner_name: str, case_number: str = "", mode: str = "full"):
     bcpao_results = search_bcpao_property(owner_name)
 
     if not bcpao_results:
-        # If nothing found, try GIS directly with broader wildcards
+        # If nothing found, try GIS directly with individual name parts
         print("  Trying GIS with broader search...")
         parts = owner_name.upper().split()
         for part in parts:
             if len(part) > 2:
                 gis_results = search_bcpao_gis(part)
-                if gis_results:
+                # Filter to only include results matching the full name
+                filtered = [r for r in gis_results
+                           if owner_name.split()[-1].upper() in str(r.get("OWNER_NAME1", "")).upper()]
+                if filtered:
+                    bcpao_results = [format_bcpao_result(r) for r in filtered]
+                    break
+                elif gis_results:
                     bcpao_results = [format_bcpao_result(r) for r in gis_results]
                     break
 
@@ -365,9 +372,10 @@ def run_full_audit(owner_name: str, case_number: str = "", mode: str = "full"):
         report["bcpao"]["data"] = bcpao_results
         print(f"  ✅ Found {len(bcpao_results)} properties:")
         for prop in bcpao_results:
-            addr = prop.get("address") or prop.get("SITEADDR", "unknown")
-            val = prop.get("just_value") or prop.get("JUSTVAL", 0)
-            print(f"     {addr} | Just Value: ${val:,.0f}" if isinstance(val, (int, float)) else f"     {addr} | Value: {val}")
+            addr = prop.get("address", "unknown")
+            val = prop.get("just_value", 0)
+            owner = prop.get("owner1", "")
+            print(f"     {owner} | {addr} | Value: ${val:,.0f}" if isinstance(val, (int, float)) else f"     {owner} | {addr}")
     else:
         report["bcpao"]["status"] = "not_found"
         print("  ⚠️ No properties found in BCPAO")
