@@ -389,6 +389,29 @@ def run_full_audit(owner_name: str, case_number: str = "", mode: str = "full"):
 
     acclaim_results = search_acclaimweb(last_name, first_name)
 
+    # If requests-based search failed (503/no ViewState), try Playwright
+    if not acclaim_results:
+        print("  Requests-based search failed, trying Playwright browser...")
+        try:
+            from scrapers.acclaimweb_playwright import run_sync
+            pw_result = run_sync(last_name, first_name)
+            if pw_result.get("success") and pw_result.get("records"):
+                acclaim_results = pw_result["records"]
+                print(f"  ✅ Playwright found {len(acclaim_results)} instruments")
+        except ImportError:
+            # Try relative import
+            try:
+                script_dir = Path(__file__).parent
+                sys.path.insert(0, str(script_dir.parent))
+                from scrapers.acclaimweb_playwright import run_sync
+                pw_result = run_sync(last_name, first_name)
+                if pw_result.get("success") and pw_result.get("records"):
+                    acclaim_results = pw_result["records"]
+            except Exception as e:
+                print(f"  Playwright unavailable: {e}")
+        except Exception as e:
+            print(f"  Playwright error: {e}")
+
     if acclaim_results:
         report["acclaimweb"]["status"] = "found"
         report["acclaimweb"]["data"] = acclaim_results
