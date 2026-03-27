@@ -88,8 +88,6 @@ def search_bcpao_gis(owner_name: str) -> list:
     seen_accounts = set()
 
     for where in queries:
-
-    for where in queries:
         try:
             params = {
                 "where": where,
